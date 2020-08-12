@@ -226,18 +226,17 @@ int main(int argc, char **argv){
 	multi /= (double) RUNS;
 	single /= (double) RUNS;
 
-	// we don't need a old system with 95 points
-	single -= 50;
-
 	// print out all data!
 	printf("\n\nMulticore:\t\e[31m%.6f\e[0m\n", multi);
 	printf("Singlecore:\t\e[31m%.6f\e[0m\n", single);
 	printf("\n");
-	printf(".............0____5____10___15___20___25___30___35___40___45");
-	printf("___50___55___60___65___70___75___80___85___90___95___100\n");
-	printf(".............|----:----|----:----|----:----|----:----|----:");
-	printf("----|----:----|----:----|----:----|----:----|----:----|\n");
-	
+	printf(".............90___.____91___.____92___.____93___.____94___.____95___.____96___.____97___.____98___.____99___.____100\n");
+	printf(".............|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|\n");
+
+	// we don't want to go out of the bar
+	single *= 5;
+	single -= 400;
+
 	// make some bars
 	printf("\e[32mMulticore:\e[0m...\e[36m");
 	for(i = 0; i < multi; i++){
