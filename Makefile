@@ -19,8 +19,4 @@ $(PROG): $(OBJS)
 
 clean:
 	rm -f *.o
-	#rm -f $(PROG)
-
-echo:
-	@echo === END ===
-	@clear
+	rm -f $(PROG)
