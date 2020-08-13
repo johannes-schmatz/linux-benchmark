@@ -1,4 +1,20 @@
-// main.c
+/*
+    main.c -- linux benchmark for cpu
+    Copyright (C) 2020  Johannes Schmatz <johannes_schmatz@gmx.de>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 // <config>
 #define PROG_NAME "linux benchmark utility"
@@ -78,11 +94,9 @@ int check(double pi, double *pi_array){
 	return ret;
 }
 
-void multicore(int run_nr, int n){
-	// TODO just call n times singlecore!
-}
+double last_pi = 3.1;//....
 
-void singlecore(int run_nr){
+void singlecore(int run_nr, int single, int mulit_thread_nr){
 	// init random
 	srand(time(NULL));
 
@@ -129,16 +143,32 @@ void singlecore(int run_nr){
 
 		// print some stuff every LOOP_SHORT_NUM
 		if(all % LOOP_SHORT_NUM == 0){
-			printf("Run %d: In %3ds sind %d Positionen getestet.\n", run_nr, \
-					(now - start), all);
+			if(single){
+				printf("Run %d S:\tIn %3ds sind %d Positionen getestet. PI=%lf\n", \
+					run_nr, (now - start), all, pi);
+			}else{
+				printf("Run %d M %d:\tIn %3ds sind %d Positionen getestet. PI=%lf\n", \
+					run_nr, mulit_thread_nr, (now - start), all, pi);
+			}
 		}
 
 	// do this while pi is wrong
 	}while(!check(pi, &pi_array[0]));
+
+	// save pi to global var
+	last_pi = pi;
+}
+
+void multicore(int run_nr, int n){
+	// TODO just call n times singlecore!
+	singlecore(run_nr, FALSE, 0);
 }
 
 void calculate_points(int run_nr, double *array, int number_of_cores){
 	time_t start, mid, end;
+
+	// inform the user
+//	printf("\tRun %d: Start Multicore\n", run_nr);
 
 	// start measuring
 	time(&start);
@@ -149,8 +179,11 @@ void calculate_points(int run_nr, double *array, int number_of_cores){
 	// stop measuring the multicore, start singlecore
 	time(&mid);
 
+	// inform the user
+//	printf("\tRun %d: Start Singlecore\n", run_nr);
+
 	// make the singlecore test
-	singlecore(run_nr);
+	singlecore(run_nr, TRUE, 0);
 
 	// stop measuring
 	time(&end);
@@ -183,13 +216,6 @@ int string_to_num(char *str){
 	return num;
 }
 
-void info(){
-	// print some info test
-	printf("%s %s\nLizenz: %s, Autor: %s\n", PROG_NAME, PROG_VERS, \
-			PROG_LICENCE, PROG_AUTH);
-}
-
-
 int main(int argc, char **argv){
 	int i;
 
@@ -203,18 +229,14 @@ int main(int argc, char **argv){
 	// get the number of cores form string
 	int number_of_cores = string_to_num(argv[2]);
 
-	// print the info
-	info();
-
-	// show the cores
-	printf("Programm läuft mit \e[34m%d\e[0m CPU-Kernen.\n\n", number_of_cores);
-
 	// create the data array for measuring
 	double data[RUNS][2];
 
 	// run the tests
 	for(i = 0; i<RUNS; i++){
+//		printf("Start Run %d\n", i);
 		calculate_points(i, &data[i][0], number_of_cores);
+//		printf("Ende Run %d\n", i);
 	}
 
 	// read the data from the tests, calculate median
@@ -226,12 +248,20 @@ int main(int argc, char **argv){
 	multi /= (double) RUNS;
 	single /= (double) RUNS;
 
+	// show the result
+	printf("\nDas Programm hat nebenbei PI berechnet:\n\t\e[32m%.10lf\e[0m\n\n", last_pi);
+
+	// show the cores
+	printf("Programm lief mit \e[34m%d\e[0m CPU-Kernen.\n\n", number_of_cores);
+
 	// print out all data!
 	printf("\n\nMulticore:\t\e[31m%.6f\e[0m\n", multi);
 	printf("Singlecore:\t\e[31m%.6f\e[0m\n", single);
 	printf("\n");
-	printf(".............80___81___82___83___84___85___86___87___88___89___90___91___92___93___94___95___96___97___98___99___100\n");
-	printf(".............|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|----:----|\n");
+	printf(".............80___81___82___83___84___85___86___87___88___89___90");
+	printf("___91___92___93___94___95___96___97___98___99___100\n");
+	printf(".............|----:----|----:----|----:----|----:----|----:----|");
+	printf("----:----|----:----|----:----|----:----|----:----|\n");
 
 	// we don't want to go out of the bar
 	single *= 5;
@@ -248,9 +278,13 @@ int main(int argc, char **argv){
 	}
 	printf("!\e[0m\n\n");
 
-	// print the info
-	info();
+	// print NAME...
+	printf("%s %s\nLizenz: %s, Autor: %s\n", PROG_NAME, PROG_VERS, \
+			PROG_LICENCE, PROG_AUTH);
 
 	// DONE!
 	return 0;
 }
+
+// syntax
+// vim: ts=8 sts=8 sw=8 noet si syntax=c
